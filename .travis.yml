@@ -1,0 +1,22 @@
+sudo: required
+services:
+ - docker
+
+before_install:
+ - docker build -t raghu/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+ - docker run raghu/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t raghu/multi-client ./client
+  - docker build -t raghu/multi-nginx ./nginx
+  - docker build -t raghu/multi-server ./server
+  - docker build -t raghu/multi-worker ./worker
+
+  - echo "$DOCKER_PASS" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push raghu/multi-client
+  - docker push raghu/multi-nginx
+  - docker push raghu/multi-server
+  - docker push raghu/multi-worker
